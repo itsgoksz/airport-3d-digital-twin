@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Python / Virtual Environment
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Build artifacts
+dist/
+dist-ssr/
+build/
+*.local
+
+# Secrets & Environment Variables
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# System & OS Files
+.DS_Store
+Thumbs.db
+
+# Editor configurations
+.vscode/
+.idea/
+
+# Scratch & test scripts
+test_lookat.js
+frontend/scratch*.js
+frontend/inspect_gltf.js
+
+# Legacy airport data caches (keeping v7 as primary cache)
+backend/airport_data_cache_v2.json
+backend/airport_data_cache_v3.json
+backend/airport_data_cache_v4.json
+backend/airport_data_cache_v5.json
+backend/airport_data_cache_v6.json
+
+# Large raw 3D DCC source models (blend/fbx/obj); production GLB assets are in public/
+frontend/public/models/
