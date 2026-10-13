@@ -1,91 +1,104 @@
 # 🛫 Airport 3D Digital Twin
 
-> **Real-time 3D digital twin and live ADS-B aviation telemetry simulator for Kempegowda International Airport (BLR / VOBL).** Built with Three.js, React Three Fiber, and FastAPI.
+> **Real-time 3D spatial twin and live ADS-B aviation telemetry simulator for Kempegowda International Airport (BLR / VOBL).** Built with Three.js, React Three Fiber, Google 3D Tiles, and FastAPI.
 
 <p align="center">
-  <img src="assets/preview.png" alt="Airport 3D Digital Twin Preview" width="100%" style="border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);" />
+  <img src="assets/twin_hero_preview.png" alt="Airport 3D Digital Twin Showcase" width="100%" style="border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12);" />
 </p>
 
 ---
 
-## Overview
+## ⚡ The Hard Problem with Traditional Flight Tracking
 
-Flight tracking apps usually give you flat 2D maps with static plane icons. But airports are complex, three-dimensional spatial environments—aircraft descend on glide slopes, bank into turns, taxi along intricate ground routes, and maneuver around gates.
+Mainstream flight trackers like Flightradar24 show aircraft as flat 2D icons stamped onto generic Google Maps. But airports are intricate, three-dimensional physical ecosystems:
+- Approaching flights don't move in flat lines—they intercept 3-degree glide slopes, calculate step-down altitudes, and bank into crosswind headings.
+- On the ground, aircraft taxi through complex networks of aprons, rapid-exit taxiways, and gate parking positions while dodging pushback tugs and follow-me cars.
+- Terminal architecture (Kempegowda's iconic garden terminals T1 & T2) creates complex spatial geometries that govern ground operations.
 
-**Airport 3D Digital Twin** recreates **Kempegowda International Airport (BLR / VOBL, Bengaluru)** in real-time 3D space:
-- **Live ADS-B Telemetry:** Connects to live transponder feeds via `api.adsb.lol` within a 100km radius of Bengaluru.
-- **Real Airport Topography:** Fetches real runway layouts (09L/27R, 09R/27L), taxiways, passenger terminals (T1 & T2), aprons, and gate locations from OpenStreetMap's Overpass API.
-- **Geodetic Math (WGS84 -> 3D Coordinates):** Accurately translates real-world GPS coordinates (lat, lon, barometric altitude) into cartesian vectors (ECEF and local tangent plane centered on BLR).
-- **Physical 3D Models & Effects:** High-detail GLTF aircraft (Airbus A320, A310) with dynamic banking, ground traffic (pushback tugs, follow-me vehicles), and touchdown smoke particle effects.
-- **Multiple Camera Perspectives:** Switch between free airport orbit, locked aircraft chase-cam, and pilot cockpit view.
+**Airport 3D Digital Twin** brings Bengaluru's airspace to life in true 3D spatial coordinates:
+- **Live Airspace Telemetry:** Ingests live ADS-B transponder bursts via `api.adsb.lol` within a 100km radius of Bengaluru (`13.199, 77.706`).
+- **Real Airport Geometries:** Queries OpenStreetMap's Overpass API for real-world runway dimensions (09L/27R and 09R/27L), taxiway networks, passenger terminals (T1 & T2), and gate positions.
+- **Geodetic Math (WGS84 → ECEF):** Translates raw latitude, longitude, and barometric altitude into true 3D cartesian vectors centered on VOBL.
+- **Physical Dynamics & Particle FX:** Accurate banking angles, rate-of-climb pitch, touchdown smoke particle bursts on runway contact, dynamic ground traffic, and pushback tug operations.
+- **Multiple Camera POVs:** Switch between free airport orbit, locked aircraft chase-cam, and pilot cockpit view.
 
 ---
 
-## 🕹️ Telemetry & Rendering Pipeline
+## 🕹️ Live 3D Scene & Radar HUD
+
+<p align="center">
+  <img src="assets/preview.png" alt="Live 3D Airport Scene Preview" width="100%" style="border-radius: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);" />
+</p>
+
+---
+
+## 🏗️ Telemetry & Geodetic Architecture
 
 ```mermaid
 flowchart TD
-    subgraph DataSource [Live Aviation Feeds]
+    subgraph LiveData [Live Geospatial Ingestion]
         ADSB[Live ADS-B Transponders
-api.adsb.lol / 100km BLR Radius]
+api.adsb.lol / 100km Corridor]
         OSM[OpenStreetMap Overpass API
 Runways, Terminals, Gates, Taxiways]
     end
 
-    subgraph Backend [FastAPI Telemetry Server]
+    subgraph Backend [FastAPI Asynchronous Pipeline]
         Fetch[Async Polling & Cache Engine]
         History[Flight History Tracker
-60s Breadcrumb Trails]
+60-Second Breadcrumb Trails]
         Cache[(blr_airport_cache.json)]
     end
 
-    subgraph Frontend [React Three Fiber & Three.js]
-        Coord[WGS84 to 3D Cartesian Projection]
-        Scene[3D World Scene
-- Runways 09L/27R
+    subgraph Frontend [React Three Fiber & Three.js 3D Engine]
+        Geodetic[WGS84 to Cartesian ECEF Projection
+wgs84ToECEF Math]
+        Runways[Airport Mesh
+- Runways 09L/27R & 09R/27L
 - Terminals T1 & T2
-- Dynamic Pushback Tugs]
-        Aircraft[3D Aircraft Layer
-- GLTF Models
+- Pushback Tugs]
+        AircraftLayer[Aircraft Dynamics Layer
+- GLTF Models: A320 & A310
 - Heading & Banking Interpolation
-- Touchdown Smoke]
-        HUD[Telemetry HUD Dashboard
-- Callsign, ICAO, Alt, Speed, Heading]
+- Touchdown Smoke FX]
+        HUD[Radar HUD Dashboard
+Callsign, ICAO, Alt, Speed, Heading]
     end
 
     ADSB --> Fetch
     OSM --> Cache --> Fetch
     Fetch --> History
-    History -->|REST /api/live-flights| Coord
-    Coord --> Scene
-    Coord --> Aircraft
-    Coord --> HUD
+    History -->|REST /api/live-flights| Geodetic
+    Geodetic --> Runways
+    Geodetic --> AircraftLayer
+    Geodetic --> HUD
 ```
 
----
+### Mathematical Geodetic Projection (WGS84 → 3D Cartesian)
+GPS transponders report latitude, longitude, and barometric altitude. To position aircraft accurately inside WebGL without distortion, the frontend applies an Earth-Centered, Earth-Fixed (ECEF) transformation:
 
-## ✈️ Key Features
+$$
+u = rac{a}{\sqrt{1 - e^2 \sin^2(\phi)}}$$
+$$X = (
+u + h) \cos(\phi) \cos(\lambda), \quad Y = (
+u + h) \cos(\phi) \sin(\lambda), \quad Z = (
+u(1 - e^2) + h) \sin(\phi)$$
 
-- **Live Airspace Activity:** Tracks all inbound and outbound aircraft within 100km of Kempegowda Airport, updating telemetry every 10 seconds.
-- **Flight Path Breadcrumbs:** Visualizes aircraft historical tracks over the last 60 seconds with colored 3D trail lines.
-- **Ground Operations & Support:** Renders airport apron gates, taxiway networks, and dynamic pushback tug vehicles moving in the gate areas.
-- **Interactive Aircraft Following:** Click any flight from the telemetry HUD or in the 3D scene to lock camera focus into chase mode or cockpit view.
-- **Realistic Flight Dynamics:** Calculates pitch and roll banking angles based on velocity, rate of climb/descent, and track heading changes.
-- **3D Photorealistic Tiles Support:** Integrated with `3d-tiles-renderer` and `GoogleCloudAuthPlugin` for streaming Google 3D Photorealistic Tiles when configured.
+where $a = 6,378,137	ext{ m}$ (semi-major axis) and $e^2 = 0.00669438$ (WGS84 eccentricity squared). This vector is then transformed into the airport's local tangent coordinate space centered on Kempegowda Airport.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology | Details |
+| Layer | Technology | Description |
 | :--- | :--- | :--- |
 | **3D Engine** | [Three.js](https://threejs.org/) + [React Three Fiber](https://r3f.docs.pmnd.rs/) | WebGL physical rendering, scene graph & lighting |
-| **3D Helpers** | [@react-three/drei](https://github.com/pmndrs/drei) | Camera controls, environment HDRIs, sky models |
+| **3D Helpers** | [@react-three/drei](https://github.com/pmndrs/drei) | Camera controls, environment HDRIs & dynamic sky models |
 | **Tiles Renderer** | [3d-tiles-renderer](https://github.com/NASA-AMMOS/3DTilesRendererJS) | Geospatial 3D tile streaming & Draco mesh decompression |
-| **Frontend UI** | [React 18](https://react.dev/) + [Vite](https://vite.dev/) | High-performance dashboard with Lucide icons |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Dark aviation radar HUD interface |
+| **Frontend UI** | [React 18](https://react.dev/) + [Vite](https://vite.dev/) | Dark radar HUD interface with Lucide icons |
+| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Tactical aviation dashboard styling |
 | **Backend API** | [FastAPI](https://fastapi.tiangolo.com/) (Python 3.10+) | Asynchronous telemetry pipeline with httpx |
-| **Geodata** | OpenStreetMap (Overpass) + ADS-B LOL | Live transponders and municipal airport layout |
+| **Live Telemetry** | ADS-B LOL & OpenStreetMap | Transponder broadcasts & airport infrastructure data |
 
 ---
 
@@ -93,29 +106,30 @@ Runways, Terminals, Gates, Taxiways]
 
 ```text
 live-airport-simulator/
-├── assets/                       # Visual preview & media
-│   └── preview.png
+├── assets/                       # High-resolution media & showcases
+│   ├── twin_hero_preview.png     # Namma Universe product showcase
+│   └── preview.png               # Live 3D scene & radar dashboard
 ├── backend/                      # Python FastAPI server
-│   ├── main.py                   # OSM fetching, ADS-B telemetry polling & geodetics
+│   ├── main.py                   # OSM vector fetching & ADS-B telemetry ingestion
 │   ├── requirements.txt          # FastAPI, Uvicorn, HTTPX, Pydantic
 │   └── blr_airport_cache.json    # Cached OSM runway & building vectors
 ├── frontend/                     # React + React Three Fiber client
 │   ├── public/
-│   │   ├── A320.glb              # Optimized Airbus A320 3D model
+│   │   ├── A320.glb              # High-fidelity Airbus A320 3D model
 │   │   ├── AirbusA310.glb        # Airbus A310 model
-│   │   └── models/               # Textures & alternative 3D formats
+│   │   └── models/               # Textures & format assets
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── SceneViewer.tsx   # Three.js Canvas, camera modes, tiles & lighting
-│   │   │   ├── LiveFlightsLayer.tsx # Live aircraft instances & trajectory trails
-│   │   │   ├── AirplaneMarker.tsx # Individual aircraft rotation & altitude physics
-│   │   │   ├── AirportMesh.tsx   # Procedural runways, taxiways & terminals
-│   │   │   ├── DynamicGroundTraffic.tsx # Ground vehicles & pushback tugs
-│   │   │   ├── TouchdownSmoke.tsx # Particle FX on runway landing
-│   │   │   └── Dashboard.tsx     # Flight list HUD, search & camera selector
+│   │   │   ├── LiveFlightsLayer.tsx # Live aircraft positions & breadcrumb trails
+│   │   │   ├── AirplaneMarker.tsx # Aircraft rotation, pitch & altitude kinematics
+│   │   │   ├── AirportMesh.tsx   # Runways, taxiways & terminal buildings
+│   │   │   ├── DynamicGroundTraffic.tsx # Apron ground vehicles & pushback tugs
+│   │   │   ├── TouchdownSmoke.tsx # Particle FX on runway landing contact
+│   │   │   └── Dashboard.tsx     # Flight radar list, search & camera selector
 │   │   ├── api/
-│   │   │   └── client.ts         # WGS84 to cartesian ECEF math & telemetry fetcher
-│   │   ├── types.ts              # Aircraft telemetry & camera mode interfaces
+│   │   │   └── client.ts         # Geodetic WGS84 to cartesian ECEF projection
+│   │   ├── types.ts              # Telemetry & camera mode TypeScript interfaces
 │   │   └── App.tsx               # Main application container
 │   ├── package.json
 │   └── vite.config.ts
@@ -128,7 +142,7 @@ live-airport-simulator/
 
 ### 1. Prerequisites
 - **Python 3.10+**
-- **Node.js 18+** and **npm** / **pnpm**
+- **Node.js 18+** and **npm**
 
 ### 2. Clone the Repository
 ```bash
@@ -144,7 +158,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
-*The backend will query OSM Overpass for Kempegowda Airport geometry (caching it locally) and begin polling ADS-B telemetry.*
+*The backend will cache Kempegowda Airport runway geometry locally and begin streaming live ADS-B flights.*
 
 ### 4. Start the 3D Frontend
 In a new terminal window:
@@ -153,21 +167,21 @@ cd frontend
 npm install
 npm run dev
 ```
-Open [http://localhost:5173](http://localhost:5173) in your browser to view the 3D digital twin.
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## 🕹️ Controls & Camera Modes
+## 🕹️ Flight Deck & Camera Controls
 
-- **Left Mouse Click + Drag:** Rotate / Orbit scene
-- **Right Mouse Click + Drag:** Pan across airport
+- **Left Mouse Click + Drag:** Rotate / Orbit airport scene
+- **Right Mouse Click + Drag:** Pan across runways and terminals
 - **Scroll Wheel:** Zoom altitude in / out
-- **Airport Mode:** Free navigation around terminals and runways
-- **Follow Aircraft:** Click any flight from the HUD panel to smoothly attach the camera to the plane
-- **Cockpit Mode:** Experience the flight deck view heading into Runway 09L/27R
+- **Airport Mode:** Free exploration of terminals, taxiways, and gates
+- **Follow Mode:** Click any flight from the radar HUD to lock camera focus in smooth chase mode
+- **Cockpit Mode:** First-person pilot perspective on approach into Runway 09L/27R
 
 ---
 
 <p align="center">
-  Developed by <a href="https://github.com/itsgoksz">itsgoksz</a>
+  Engineered by <a href="https://github.com/itsgoksz">itsgoksz</a>
 </p>
