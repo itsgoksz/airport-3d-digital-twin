@@ -1,144 +1,122 @@
-<p align="center">
-  <h1 align="center">🛫 Airport 3D Digital Twin</h1>
-  <p align="center">
-    <strong>Real-Time 3D Digital Twin & Live ADS-B Aviation Telemetry Simulator for Kempegowda International Airport (BLR / VOBL)</strong>
-  </p>
-</p>
+# 🛫 Airport 3D Digital Twin
+
+> **Real-time 3D digital twin and live ADS-B aviation telemetry simulator for Kempegowda International Airport (BLR / VOBL).** Built with Three.js, React Three Fiber, and FastAPI.
 
 <p align="center">
-  <a href="#overview">Overview</a> •
-  <a href="#core-features">Features</a> •
-  <a href="#aviation--rendering-architecture">Architecture</a> •
-  <a href="#flight-tracking-pipeline">Telemetry Pipeline</a> •
-  <a href="#tech-stack">Tech Stack</a> •
-  <a href="#getting-started">Getting Started</a> •
-  <a href="#performance">Performance</a> •
-  <a href="#license">License</a>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Three.js-R3F-000000?style=for-the-badge&logo=threedotjs&logoColor=white" alt="Three.js" />
-  <img src="https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 18" />
-  <img src="https://img.shields.io/badge/Google_3D_Tiles-Geospatial-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Google 3D Tiles" />
-  <img src="https://img.shields.io/badge/FastAPI-0.110-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
-  <img src="https://img.shields.io/badge/ADS--B_One-Live_Telemetry-FFA500?style=for-the-badge" alt="ADS-B Telemetry" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-3.4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/License-MIT-F2A65A?style=for-the-badge" alt="License MIT" />
+  <img src="assets/preview.png" alt="Airport 3D Digital Twin Preview" width="100%" style="border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);" />
 </p>
 
 ---
 
-## 📖 Overview
+## Overview
 
-The **Airport 3D Digital Twin** is a high-fidelity geospatial and aviation telemetry simulation of Kempegowda International Airport (BLR / VOBL, Bengaluru). Built on **React Three Fiber (R3F)**, **Three.js**, **Google 3D Photorealistic Tiles**, and **FastAPI**, this system renders live airspace activity within a 100km radius of Bengaluru in physical 3D space with sub-second accuracy.
+Flight tracking apps usually give you flat 2D maps with static plane icons. But airports are complex, three-dimensional spatial environments—aircraft descend on glide slopes, bank into turns, taxi along intricate ground routes, and maneuver around gates.
 
-By combining real-time ADS-B transponder data streams with procedural airport architecture, physical atmospheric scattering, and apron service dynamics, this digital twin demonstrates cutting-edge spatial computing applied to civil aviation management.
-
----
-
-## ✨ Core Features
-
-- **📡 Live ADS-B Transponder Radar**: Ingests live ADS-B One API telemetry, tracking commercial and cargo air traffic within a 100km radius of VOBL with smooth coordinate interpolation (climb, descent, speed, heading).
-- **🌍 Photorealistic 3D Geospatial Tiles**: Streams real-world terrain and volumetric metropolitan architecture via Google 3D Photorealistic Tiles and `3d-tiles-renderer`.
-- **✈️ High-Fidelity Aircraft Simulation**:
-  - Detailed 3D aircraft models (**Airbus A320** & **Airbus A310**) with accurate physics rigs.
-  - FAA-compliant strobes, red/green wingtip navigation lights, and nose taxi lights.
-  - **Dynamic Runway Touchdown Smoke**: Real-time particle dissipation bursts triggered upon wheel-to-asphalt contact.
-- **🏛️ Procedural Terminal Architecture**:
-  - **Terminal 1**: Functional gates, apron stands, and procedural luminaire arrays.
-  - **Terminal 2 ("Terminal in a Garden")**: Custom-modeled bamboo bell chandeliers, indoor lush botanical terracing, and iconic woven ceilings.
-- **🚜 Dynamic Apron & Ground Traffic**: Autonomous pushback tugs, dynamic service vehicles, and taxiing ground routing.
-- **☀️ Real-Time Solar & Weather Ephemeris**:
-  - Solar elevation and azimuth calculated dynamically based on real-world UTC timestamps.
-  - Synchronized with **Open-Meteo live BLR weather data** for realistic atmospheric scattering, golden hour twilights, and night operations.
-- **🎥 CineCam & Free Roam Modes**: Switch effortlessly between free-roam orbit camera, tower observation deck, and cockpit chase cameras.
+**Airport 3D Digital Twin** recreates **Kempegowda International Airport (BLR / VOBL, Bengaluru)** in real-time 3D space:
+- **Live ADS-B Telemetry:** Connects to live transponder feeds via `api.adsb.lol` within a 100km radius of Bengaluru.
+- **Real Airport Topography:** Fetches real runway layouts (09L/27R, 09R/27L), taxiways, passenger terminals (T1 & T2), aprons, and gate locations from OpenStreetMap's Overpass API.
+- **Geodetic Math (WGS84 -> 3D Coordinates):** Accurately translates real-world GPS coordinates (lat, lon, barometric altitude) into cartesian vectors (ECEF and local tangent plane centered on BLR).
+- **Physical 3D Models & Effects:** High-detail GLTF aircraft (Airbus A320, A310) with dynamic banking, ground traffic (pushback tugs, follow-me vehicles), and touchdown smoke particle effects.
+- **Multiple Camera Perspectives:** Switch between free airport orbit, locked aircraft chase-cam, and pilot cockpit view.
 
 ---
 
-## 🏛️ Aviation & Rendering Architecture
+## 🕹️ Telemetry & Rendering Pipeline
 
 ```mermaid
 flowchart TD
-    subgraph LiveIngestion [Live Telemetry & Environmental Feeds]
-        ADSB[ADS-B One Radar API] -->|Live Aircraft Vectors| BackendAPI[FastAPI Telemetry Ingestion Hub]
-        Meteo[Open-Meteo Weather API] -->|Wind, Visibility & Sun Angles| BackendAPI
-        OSM[OpenStreetMap / Overpass] -->|Runway & Taxiway Polygons| BackendAPI
+    subgraph DataSource [Live Aviation Feeds]
+        ADSB[Live ADS-B Transponders
+api.adsb.lol / 100km BLR Radius]
+        OSM[OpenStreetMap Overpass API
+Runways, Terminals, Gates, Taxiways]
     end
 
-    BackendAPI -->|Cached Async Stream| ClientAPI[HTTPX / REST Bridge]
-
-    subgraph R3FScene [React Three Fiber Spatial Engine]
-        ClientAPI --> FlightInterpolation[Dead-Reckoning & Kinematic Interpolator]
-        FlightInterpolation --> AirplaneMesh[Aircraft Meshes & FAA Beacons]
-        
-        GoogleTiles[Google Photorealistic 3D Tiles] --> TilesRenderer[3d-tiles-renderer Pipeline]
-        TilesRenderer --> Terrain[3D Geo-Referenced Terrain]
-        
-        Terrain --> Canvas3D[WebGL Canvas]
-        AirplaneMesh --> Canvas3D
-        Atmosphere[Atmospheric Sky & Solar Shader] --> Canvas3D
-        ParticleFX[Touchdown Smoke & Ground Vehicles] --> Canvas3D
+    subgraph Backend [FastAPI Telemetry Server]
+        Fetch[Async Polling & Cache Engine]
+        History[Flight History Tracker
+60s Breadcrumb Trails]
+        Cache[(blr_airport_cache.json)]
     end
+
+    subgraph Frontend [React Three Fiber & Three.js]
+        Coord[WGS84 to 3D Cartesian Projection]
+        Scene[3D World Scene
+- Runways 09L/27R
+- Terminals T1 & T2
+- Dynamic Pushback Tugs]
+        Aircraft[3D Aircraft Layer
+- GLTF Models
+- Heading & Banking Interpolation
+- Touchdown Smoke]
+        HUD[Telemetry HUD Dashboard
+- Callsign, ICAO, Alt, Speed, Heading]
+    end
+
+    ADSB --> Fetch
+    OSM --> Cache --> Fetch
+    Fetch --> History
+    History -->|REST /api/live-flights| Coord
+    Coord --> Scene
+    Coord --> Aircraft
+    Coord --> HUD
 ```
 
 ---
 
-## 📡 Live Telemetry Data Contract
+## ✈️ Key Features
 
-Each aircraft in the simulation is parsed and validated into structured spatial coordinates:
-
-```typescript
-export interface AircraftTelemetry {
-  hex: string;              // ICAO 24-bit transponder address
-  flight: string;           // Callsign / Flight number (e.g. "IGO234")
-  lat: number;              // Current latitude
-  lon: number;              // Current longitude
-  alt_baro: number;         // Barometric altitude (ft)
-  track: number;            // Heading in degrees (0-359°)
-  gs: number;               // Ground speed (knots)
-  squawk: string;           // Transponder squawk code
-  interpolatedPos: Vector3; // World space 3D vector coordinates
-}
-```
+- **Live Airspace Activity:** Tracks all inbound and outbound aircraft within 100km of Kempegowda Airport, updating telemetry every 10 seconds.
+- **Flight Path Breadcrumbs:** Visualizes aircraft historical tracks over the last 60 seconds with colored 3D trail lines.
+- **Ground Operations & Support:** Renders airport apron gates, taxiway networks, and dynamic pushback tug vehicles moving in the gate areas.
+- **Interactive Aircraft Following:** Click any flight from the telemetry HUD or in the 3D scene to lock camera focus into chase mode or cockpit view.
+- **Realistic Flight Dynamics:** Calculates pitch and roll banking angles based on velocity, rate of climb/descent, and track heading changes.
+- **3D Photorealistic Tiles Support:** Integrated with `3d-tiles-renderer` and `GoogleCloudAuthPlugin` for streaming Google 3D Photorealistic Tiles when configured.
 
 ---
 
-## 💻 Tech Stack
+## 🛠️ Tech Stack
 
-| Component | Technology | Rationale |
+| Layer | Technology | Details |
 | :--- | :--- | :--- |
-| **3D Rendering** | [Three.js](https://threejs.org/) · [React Three Fiber](https://r3f.docs.pmnd.rs/) | Declarative WebGL component architecture |
-| **Geospatial Tiles** | [3d-tiles-renderer](https://github.com/NASA-AMMOS/3DTilesRendererJS) | Stream OGC 3D Tiles with hierarchical Level-of-Detail (LOD) |
-| **3D Ecosystem** | `@react-three/drei` · `@react-three/postprocessing` | Procedural sky models, shaders, bloom, and depth-of-field |
-| **Frontend UI** | React 18, TypeScript, Tailwind CSS, Lucide React | Clean heads-up flight radar telemetry HUD |
-| **Backend API** | Python 3.10+, FastAPI, Uvicorn | Sub-millisecond async proxy with HTTP caching |
-| **Data Providers** | ADS-B One API · Open-Meteo · Overpass API | Open aviation, solar ephemeris, and geospatial data sources |
+| **3D Engine** | [Three.js](https://threejs.org/) + [React Three Fiber](https://r3f.docs.pmnd.rs/) | WebGL physical rendering, scene graph & lighting |
+| **3D Helpers** | [@react-three/drei](https://github.com/pmndrs/drei) | Camera controls, environment HDRIs, sky models |
+| **Tiles Renderer** | [3d-tiles-renderer](https://github.com/NASA-AMMOS/3DTilesRendererJS) | Geospatial 3D tile streaming & Draco mesh decompression |
+| **Frontend UI** | [React 18](https://react.dev/) + [Vite](https://vite.dev/) | High-performance dashboard with Lucide icons |
+| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Dark aviation radar HUD interface |
+| **Backend API** | [FastAPI](https://fastapi.tiangolo.com/) (Python 3.10+) | Asynchronous telemetry pipeline with httpx |
+| **Geodata** | OpenStreetMap (Overpass) + ADS-B LOL | Live transponders and municipal airport layout |
 
 ---
 
-## 📂 Project Structure
+## 📁 Repository Structure
 
 ```text
-airport-live-simulator/
-├── backend/
-│   ├── main.py                     # FastAPI server & telemetry aggregators
-│   ├── requirements.txt            # Python dependencies
-│   └── airport_data_cache_v7.json  # Cached Kempegowda layout & taxiway nodes
-├── frontend/
+live-airport-simulator/
+├── assets/                       # Visual preview & media
+│   └── preview.png
+├── backend/                      # Python FastAPI server
+│   ├── main.py                   # OSM fetching, ADS-B telemetry polling & geodetics
+│   ├── requirements.txt          # FastAPI, Uvicorn, HTTPX, Pydantic
+│   └── blr_airport_cache.json    # Cached OSM runway & building vectors
+├── frontend/                     # React + React Three Fiber client
+│   ├── public/
+│   │   ├── A320.glb              # Optimized Airbus A320 3D model
+│   │   ├── AirbusA310.glb        # Airbus A310 model
+│   │   └── models/               # Textures & alternative 3D formats
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── SceneViewer.tsx           # Primary R3F Canvas & lighting controller
-│   │   │   ├── AirplaneMarker.tsx        # Interpolated aircraft marker & HUD
-│   │   │   ├── AnimatedA320.tsx          # A320 3D mesh with beacon shader logic
-│   │   │   ├── AirportMesh.tsx           # Procedural runways, taxiways, and signage
-│   │   │   ├── TouchdownSmoke.tsx        # Dynamic particle burst system
-│   │   │   ├── DynamicGroundTraffic.tsx  # Pushback tugs & ground vehicle simulation
-│   │   │   └── PushbackTug.tsx           # Apron ground support equipment
-│   │   ├── api/                          # Telemetry polling client
-│   │   └── types.ts                      # Aircraft & weather data types
-│   ├── public/
-│   │   ├── A320.glb                      # Optimized Airbus A320 GLTF asset
-│   │   └── AirbusA310.glb                # Airbus A310 asset
+│   │   │   ├── SceneViewer.tsx   # Three.js Canvas, camera modes, tiles & lighting
+│   │   │   ├── LiveFlightsLayer.tsx # Live aircraft instances & trajectory trails
+│   │   │   ├── AirplaneMarker.tsx # Individual aircraft rotation & altitude physics
+│   │   │   ├── AirportMesh.tsx   # Procedural runways, taxiways & terminals
+│   │   │   ├── DynamicGroundTraffic.tsx # Ground vehicles & pushback tugs
+│   │   │   ├── TouchdownSmoke.tsx # Particle FX on runway landing
+│   │   │   └── Dashboard.tsx     # Flight list HUD, search & camera selector
+│   │   ├── api/
+│   │   │   └── client.ts         # WGS84 to cartesian ECEF math & telemetry fetcher
+│   │   ├── types.ts              # Aircraft telemetry & camera mode interfaces
+│   │   └── App.tsx               # Main application container
 │   ├── package.json
 │   └── vite.config.ts
 └── README.md
@@ -148,63 +126,48 @@ airport-live-simulator/
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- **Node.js**: v18.0.0 or higher
-- **Python**: 3.10 or higher
-- *(Optional)* A Google Maps Platform API key with **3D Tiles API** enabled.
+### 1. Prerequisites
+- **Python 3.10+**
+- **Node.js 18+** and **npm** / **pnpm**
 
----
+### 2. Clone the Repository
+```bash
+git clone https://github.com/itsgoksz/airport-3d-digital-twin.git
+cd airport-3d-digital-twin
+```
 
-### 1. Backend Setup
-
+### 3. Start the Backend Telemetry Server
 ```bash
 cd backend
-
-# Create and activate virtual environment
 python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
+source venv/bin/activate
 pip install -r requirements.txt
-
-# Start backend server
-uvicorn main:app --port 8000 --reload
+uvicorn main:app --reload --port 8000
 ```
-API endpoints will run at **`http://localhost:8000`**.
+*The backend will query OSM Overpass for Kempegowda Airport geometry (caching it locally) and begin polling ADS-B telemetry.*
 
----
-
-### 2. Frontend Setup
-
+### 4. Start the 3D Frontend
+In a new terminal window:
 ```bash
-cd ../frontend
-
-# Install dependencies
+cd frontend
 npm install
-
-# (Optional) Add your Google 3D Tiles key in .env:
-# echo "VITE_GOOGLE_MAPS_API_KEY=your_key_here" > .env
-
-# Start Vite dev server
 npm run dev
 ```
-
-Open **`http://localhost:5173`** to enter the 3D Kempegowda live digital twin.
-
----
-
-## ⚡ Performance Optimizations
-
-- **Hierarchical LOD Streaming**: Google 3D Tiles load asynchronously based on camera frustum distance and screen-space error metrics.
-- **Instanced Mesh Ground Fleets**: Apron ground support vehicles share instanced geometry buffers, minimizing GPU draw calls.
-- **Dead-Reckoning Interpolation**: Aircraft coordinate positions interpolate at 60 FPS between ADS-B polling cycles to prevent visual stuttering.
+Open [http://localhost:5173](http://localhost:5173) in your browser to view the 3D digital twin.
 
 ---
 
-## 📄 License
+## 🕹️ Controls & Camera Modes
 
-Distributed under the **MIT License**.
+- **Left Mouse Click + Drag:** Rotate / Orbit scene
+- **Right Mouse Click + Drag:** Pan across airport
+- **Scroll Wheel:** Zoom altitude in / out
+- **Airport Mode:** Free navigation around terminals and runways
+- **Follow Aircraft:** Click any flight from the HUD panel to smoothly attach the camera to the plane
+- **Cockpit Mode:** Experience the flight deck view heading into Runway 09L/27R
+
+---
 
 <p align="center">
-  Engineered with passion for aviation by <a href="https://github.com/itsgoksz">itsgoksz</a>
+  Developed by <a href="https://github.com/itsgoksz">itsgoksz</a>
 </p>
