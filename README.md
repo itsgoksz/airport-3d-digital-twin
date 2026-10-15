@@ -1,14 +1,14 @@
-# 🛫 Airport 3D Digital Twin
+# Airport 3D Digital Twin
 
-> **Real-time 3D spatial twin and live ADS-B aviation telemetry simulator for Kempegowda International Airport (BLR / VOBL).** Built with Three.js, React Three Fiber, Google 3D Tiles, and FastAPI.
+> Real-time 3D spatial twin and live ADS-B aviation telemetry simulator for Kempegowda International Airport (BLR / VOBL). Built with Three.js, React Three Fiber, Google 3D Tiles, and FastAPI.
 
 <p align="center">
-  <img src="assets/twin_hero_preview.png" alt="Airport 3D Digital Twin Showcase" width="100%" style="border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12);" />
+  <img src="assets/preview.png" alt="Airport 3D Digital Twin Live Scene" width="100%" style="border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12);" />
 </p>
 
 ---
 
-## ⚡ The Hard Problem with Traditional Flight Tracking
+## The Hard Problem with Traditional Flight Tracking
 
 Mainstream flight trackers like Flightradar24 show aircraft as flat 2D icons stamped onto generic Google Maps. But airports are intricate, three-dimensional physical ecosystems:
 - Approaching flights don't move in flat lines—they intercept 3-degree glide slopes, calculate step-down altitudes, and bank into crosswind headings.
@@ -24,15 +24,7 @@ Mainstream flight trackers like Flightradar24 show aircraft as flat 2D icons sta
 
 ---
 
-## 🕹️ Live 3D Scene & Radar HUD
-
-<p align="center">
-  <img src="assets/preview.png" alt="Live 3D Airport Scene Preview" width="100%" style="border-radius: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);" />
-</p>
-
----
-
-## 🏗️ Telemetry & Geodetic Architecture
+## Telemetry & Geodetic Architecture
 
 ```mermaid
 flowchart TD
@@ -78,17 +70,17 @@ Callsign, ICAO, Alt, Speed, Heading]
 GPS transponders report latitude, longitude, and barometric altitude. To position aircraft accurately inside WebGL without distortion, the frontend applies an Earth-Centered, Earth-Fixed (ECEF) transformation:
 
 $$
-u = rac{a}{\sqrt{1 - e^2 \sin^2(\phi)}}$$
-$$X = (
-u + h) \cos(\phi) \cos(\lambda), \quad Y = (
-u + h) \cos(\phi) \sin(\lambda), \quad Z = (
-u(1 - e^2) + h) \sin(\phi)$$
+\nu = \frac{a}{\sqrt{1 - e^2 \sin^2(\phi)}}
+$$
+$$
+X = (\nu + h) \cos(\phi) \cos(\lambda), \quad Y = (\nu + h) \cos(\phi) \sin(\lambda), \quad Z = (\nu(1 - e^2) + h) \sin(\phi)
+$$
 
-where $a = 6,378,137	ext{ m}$ (semi-major axis) and $e^2 = 0.00669438$ (WGS84 eccentricity squared). This vector is then transformed into the airport's local tangent coordinate space centered on Kempegowda Airport.
+where $a = 6,378,137\text{ m}$ (semi-major axis) and $e^2 = 0.00669438$ (WGS84 eccentricity squared). This vector is then transformed into the airport's local tangent coordinate space centered on Kempegowda Airport.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology | Description |
 | :--- | :--- | :--- |
@@ -102,12 +94,11 @@ where $a = 6,378,137	ext{ m}$ (semi-major axis) and $e^2 = 0.00669438$ (WGS84 ec
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 live-airport-simulator/
-├── assets/                       # High-resolution media & showcases
-│   ├── twin_hero_preview.png     # Namma Universe product showcase
+├── assets/                       # High-resolution media & interface previews
 │   └── preview.png               # Live 3D scene & radar dashboard
 ├── backend/                      # Python FastAPI server
 │   ├── main.py                   # OSM vector fetching & ADS-B telemetry ingestion
@@ -138,7 +129,7 @@ live-airport-simulator/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Prerequisites
 - **Python 3.10+**
@@ -171,7 +162,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## 🕹️ Flight Deck & Camera Controls
+## Flight Deck & Camera Controls
 
 - **Left Mouse Click + Drag:** Rotate / Orbit airport scene
 - **Right Mouse Click + Drag:** Pan across runways and terminals
