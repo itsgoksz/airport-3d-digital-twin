@@ -1,6 +1,33 @@
 import * as THREE from 'three';
 
-const API_BASE = 'http://localhost:8000/api';
+let activePort: number | null = null;
+const CANDIDATE_PORTS = [8000, 8001];
+
+async function apiFetch(path: string): Promise<Response> {
+  const envBase = (import.meta as any).env?.VITE_API_BASE;
+  if (envBase) {
+    return fetch(`${envBase}${path}`);
+  }
+
+  const ports = activePort 
+    ? [activePort, ...CANDIDATE_PORTS.filter(p => p !== activePort)] 
+    : CANDIDATE_PORTS;
+
+  let lastError: any = null;
+  for (const port of ports) {
+    try {
+      const res = await fetch(`http://localhost:${port}/api${path}`);
+      if (res.ok) {
+        activePort = port;
+        return res;
+      }
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error(`Could not connect to backend server on ports ${CANDIDATE_PORTS.join(', ')}`);
+}
 
 export function wgs84ToECEF(lat: number, lon: number, alt: number): THREE.Vector3 {
   const a = 6378137.0; // semi-major axis in meters
@@ -101,19 +128,19 @@ export interface FlightsResponse {
 }
 
 export const fetchAirportData = async (): Promise<AirportData> => {
-  const res = await fetch(`${API_BASE}/airport-data`);
+  const res = await apiFetch('/airport-data');
   if (!res.ok) throw new Error('Failed to fetch airport data');
   return res.json();
 };
 
 export const fetchWeather = async (): Promise<WeatherData> => {
-  const res = await fetch(`${API_BASE}/weather`);
+  const res = await apiFetch('/weather');
   if (!res.ok) throw new Error('Failed to fetch weather data');
   return res.json();
 };
 
 export const fetchLiveFlights = async (): Promise<FlightsResponse> => {
-  const res = await fetch(`${API_BASE}/live-flights`);
+  const res = await apiFetch('/live-flights');
   if (!res.ok) throw new Error('Failed to fetch live flights');
   return res.json();
 };
