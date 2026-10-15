@@ -20,7 +20,7 @@ Mainstream flight trackers like Flightradar24 show aircraft as flat 2D icons sta
 - **Real Airport Geometries:** Queries OpenStreetMap's Overpass API for real-world runway dimensions (09L/27R and 09R/27L), taxiway networks, passenger terminals (T1 & T2), and gate positions.
 - **Geodetic Math (WGS84 → ECEF):** Translates raw latitude, longitude, and barometric altitude into true 3D cartesian vectors centered on VOBL.
 - **Physical Dynamics & Particle FX:** Accurate banking angles, rate-of-climb pitch, touchdown smoke particle bursts on runway contact, dynamic ground traffic, and pushback tug operations.
-- **Multiple Camera POVs:** Switch between free airport orbit, locked aircraft chase-cam, and pilot cockpit view.
+- **Multiple Camera POVs:** Switch between free airport orbit, locked aircraft chase-cam, low-angle terminal approach, and pilot cockpit view.
 
 ---
 
@@ -99,7 +99,10 @@ where $a = 6,378,137\text{ m}$ (semi-major axis) and $e^2 = 0.00669438$ (WGS84 e
 ```text
 live-airport-simulator/
 ├── assets/                       # High-resolution media & interface previews
-│   └── preview.png               # Live 3D scene & radar dashboard
+│   ├── preview.png               # Aerial 3D satellite scene & radar dashboard
+│   ├── chase_cam_preview.png     # In-flight aircraft chase camera tracking
+│   ├── approach_preview.png      # Runway approach, T1 canopy & apron operations
+│   └── airspace_preview.png      # Regional high-altitude terminal airspace
 ├── backend/                      # Python FastAPI server
 │   ├── main.py                   # OSM vector fetching & ADS-B telemetry ingestion
 │   ├── requirements.txt          # FastAPI, Uvicorn, HTTPX, Pydantic
@@ -162,13 +165,38 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
+## Live Camera Modes & Perspectives
+
+### 1. In-Flight Chase Cam
+Click any active flight on the radar HUD to lock the camera directly behind the aircraft, streaming real-time altitude, airspeed, and banking angle over Bengaluru terrain.
+
+<p align="center">
+  <img src="assets/chase_cam_preview.png" alt="In-Flight Aircraft Chase Cam" width="100%" style="border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12);" />
+</p>
+
+### 2. Runway Approach & Apron View
+Low-angle perspective highlighting Terminal 1 canopy architecture, jet bridge infrastructure, apron pushback tugs, and arriving flights on final approach.
+
+<p align="center">
+  <img src="assets/approach_preview.png" alt="Terminal 1 Approach and Apron Operations" width="100%" style="border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12);" />
+</p>
+
+### 3. Regional Airspace Radar Overview
+Wide-angle high-altitude perspective visualizing all live inbound and outbound commercial traffic across the 100km Kempegowda Terminal Maneuvering Area (TMA).
+
+<p align="center">
+  <img src="assets/airspace_preview.png" alt="Regional Terminal Airspace Radar View" width="100%" style="border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12);" />
+</p>
+
+---
+
 ## Flight Deck & Camera Controls
 
 - **Left Mouse Click + Drag:** Rotate / Orbit airport scene
 - **Right Mouse Click + Drag:** Pan across runways and terminals
 - **Scroll Wheel:** Zoom altitude in / out
 - **Airport Mode:** Free exploration of terminals, taxiways, and gates
-- **Follow Mode:** Click any flight from the radar HUD to lock camera focus in smooth chase mode
+- **Follow / Chase Cam Mode:** Click any flight from the radar HUD to lock camera focus in smooth chase mode
 - **Cockpit Mode:** First-person pilot perspective on approach into Runway 09L/27R
 
 ---

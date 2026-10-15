@@ -332,7 +332,7 @@ async def get_live_flights():
         
     url = f"https://opensky-network.org/api/states/all?lamin={BBOX['lamin']}&lomin={BBOX['lomin']}&lamax={BBOX['lamax']}&lomax={BBOX['lomax']}"
     
-    # Generate mock fallback data
+    mock_now = int(current_time)
     mock_data = {
         "flights": [
             {
@@ -344,7 +344,17 @@ async def get_live_flights():
                 "z": -100,
                 "altitude": 1000,
                 "heading": 45,
-                "velocity": 150
+                "track": 45,
+                "velocity": 150,
+                "history": [{
+                    "lat": 13.199,
+                    "lon": 77.706,
+                    "altitude": 1000,
+                    "heading": 45,
+                    "track": 45,
+                    "velocity": 150,
+                    "time": mock_now
+                }]
             },
             {
                 "icao24": "mock2",
@@ -355,13 +365,27 @@ async def get_live_flights():
                 "z": -500,
                 "altitude": 2000,
                 "heading": 135,
-                "velocity": 200
+                "track": 135,
+                "velocity": 200,
+                "history": [{
+                    "lat": 13.210,
+                    "lon": 77.710,
+                    "altitude": 2000,
+                    "heading": 135,
+                    "track": 135,
+                    "velocity": 200,
+                    "time": mock_now
+                }]
             }
         ]
     }
     
     url = "https://api.adsb.lol/v2/lat/13.199/lon/77.706/dist/100"
-    async with httpx.AsyncClient(timeout=10.0) as client:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "application/json"
+    }
+    async with httpx.AsyncClient(timeout=10.0, headers=headers) as client:
         try:
             response = await client.get(url)
             response.raise_for_status()
@@ -451,7 +475,8 @@ async def get_live_flights():
             
             return result
             
-        except Exception:
+        except Exception as e:
+            logger.error(f"ADS-B live flights fetch error: {e}")
             if flights_cache["data"]:
                 return flights_cache["data"]
             return mock_data

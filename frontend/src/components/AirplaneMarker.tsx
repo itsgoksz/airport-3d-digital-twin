@@ -52,14 +52,31 @@ export const AirplaneMarker: React.FC<AirplaneMarkerProps> = ({ flight, isFollow
       historyRef.current = [...flight.history].sort((a, b) => a.time - b.time);
       const latestTime = historyRef.current[historyRef.current.length - 1].time;
       
+      const effectiveDelay = historyRef.current.length > 1 ? DELAY_SECONDS : 0;
       if (localSimTime.current === null) {
-          // Start clock at exactly DELAY_SECONDS behind the latest backend data
-          localSimTime.current = latestTime - DELAY_SECONDS;
+          // Start clock immediately or DELAY_SECONDS behind if we have sufficient history buffer
+          localSimTime.current = latestTime - effectiveDelay;
       } else {
           // Prevent the clock from falling too far behind if the tab was inactive
           if (localSimTime.current < latestTime - DELAY_SECONDS - 120) {
-              localSimTime.current = latestTime - DELAY_SECONDS;
+              localSimTime.current = latestTime - effectiveDelay;
           }
+      }
+    } else {
+      // Fallback: create an initial waypoint from the current flight state
+      const now = Math.floor(Date.now() / 1000);
+      const initialWp: FlightWaypoint = {
+        lat: flight.lat,
+        lon: flight.lon,
+        altitude: flight.altitude,
+        heading: flight.heading,
+        track: flight.track,
+        velocity: flight.velocity || 0,
+        time: now
+      };
+      historyRef.current = [initialWp];
+      if (localSimTime.current === null) {
+        localSimTime.current = now;
       }
     }
   }, [flight]);
@@ -253,9 +270,8 @@ export const AirplaneMarker: React.FC<AirplaneMarkerProps> = ({ flight, isFollow
             }
         }
         
-        if (!currentPos) {
-            const currentRadius = groupRef.current.position.length();
-            currentPos = wgs84ToECEF(curLat, curLon, 0).normalize().multiplyScalar(currentRadius);
+        if (!currentPos || currentPos.lengthSq() < 1) {
+            currentPos = wgs84ToECEF(curLat, curLon, (curAlt || 844) - 60);
         }
         
         // 3. Feed True AGL to physics engine instantly
@@ -306,9 +322,8 @@ export const AirplaneMarker: React.FC<AirplaneMarkerProps> = ({ flight, isFollow
                     }
                 }
             }
-            if (pos === null) {
-                const currentRadius = groupRef.current.position.length();
-                pos = wgs84ToECEF(latestWp.lat, latestWp.lon, 0).normalize().multiplyScalar(currentRadius);
+            if (pos === null || pos.lengthSq() < 1) {
+                pos = wgs84ToECEF(latestWp.lat, latestWp.lon, (latestWp.altitude || 844) - 60);
             }
             
             // Feed telemetry
@@ -323,7 +338,12 @@ export const AirplaneMarker: React.FC<AirplaneMarkerProps> = ({ flight, isFollow
             const localNorth = northPole.clone().sub(normal.clone().multiplyScalar(northPole.dot(normal))).normalize();
             const localEast = localNorth.clone().cross(normal).normalize();
             
-            const trackRad = THREE.MathUtils.degToRad(latestWp.track); 
+            const trackAngle = (latestWp.track !== undefined && latestWp.track !== null)
+              ? latestWp.track
+              : (latestWp.heading !== undefined && latestWp.heading !== null)
+                ? latestWp.heading
+                : (lastValidTrackRef.current || 0);
+            const trackRad = THREE.MathUtils.degToRad(trackAngle); 
             const trackVec = localNorth.multiplyScalar(Math.cos(trackRad))
               .add(localEast.clone().multiplyScalar(Math.sin(trackRad))).normalize();
               
