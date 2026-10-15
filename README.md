@@ -24,6 +24,31 @@ Mainstream flight trackers like Flightradar24 show aircraft as flat 2D icons sta
 
 ---
 
+## Live Camera Modes & Perspectives
+
+### 1. In-Flight Chase Cam
+Click any active flight on the radar HUD to lock the camera directly behind the aircraft, streaming real-time altitude, airspeed, and banking angle over Bengaluru terrain.
+
+<p align="center">
+  <img src="assets/chase_cam_preview.png" alt="In-Flight Aircraft Chase Cam" width="100%" style="border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12);" />
+</p>
+
+### 2. Runway Approach & Apron View
+Low-angle perspective highlighting Terminal 1 canopy architecture, jet bridge infrastructure, apron pushback tugs, and arriving flights on final approach.
+
+<p align="center">
+  <img src="assets/approach_preview.png" alt="Terminal 1 Approach and Apron Operations" width="100%" style="border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12);" />
+</p>
+
+### 3. Regional Airspace Radar Overview
+Wide-angle high-altitude perspective visualizing all live inbound and outbound commercial traffic across the 100km Kempegowda Terminal Maneuvering Area (TMA).
+
+<p align="center">
+  <img src="assets/airspace_preview.png" alt="Regional Terminal Airspace Radar View" width="100%" style="border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12);" />
+</p>
+
+---
+
 ## Telemetry & Geodetic Architecture
 
 ```mermaid
@@ -162,31 +187,6 @@ npm install
 npm run dev
 ```
 Open [http://localhost:5173](http://localhost:5173) in your browser.
-
----
-
-## Live Camera Modes & Perspectives
-
-### 1. In-Flight Chase Cam
-Click any active flight on the radar HUD to lock the camera directly behind the aircraft, streaming real-time altitude, airspeed, and banking angle over Bengaluru terrain.
-
-<p align="center">
-  <img src="assets/chase_cam_preview.png" alt="In-Flight Aircraft Chase Cam" width="100%" style="border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12);" />
-</p>
-
-### 2. Runway Approach & Apron View
-Low-angle perspective highlighting Terminal 1 canopy architecture, jet bridge infrastructure, apron pushback tugs, and arriving flights on final approach.
-
-<p align="center">
-  <img src="assets/approach_preview.png" alt="Terminal 1 Approach and Apron Operations" width="100%" style="border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12);" />
-</p>
-
-### 3. Regional Airspace Radar Overview
-Wide-angle high-altitude perspective visualizing all live inbound and outbound commercial traffic across the 100km Kempegowda Terminal Maneuvering Area (TMA).
-
-<p align="center">
-  <img src="assets/airspace_preview.png" alt="Regional Terminal Airspace Radar View" width="100%" style="border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12);" />
-</p>
 
 ---
 
